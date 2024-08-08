@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Predict Taxi Fare 🚕</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <style>
+        #map {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card shadow form-container">
+            <div class="card-body">
+                <h2 class="card-title text-center">Predict Taxi Fare 🚕</h2>
+                <div id="map"></div>
+                <form id="predictForm" action="{% url 'predict' %}" method="post">
+                    {% csrf_token %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="User_ID" class="form-label">User ID</label>
+                            <input type="text" class="form-control" id="User_ID" name="User_ID" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="User_Name" class="form-label">User Name</label>
+                            <input type="text" class="form-control" id="User_Name" name="User_Name" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="Driver_Name" class="form-label">Driver Name</label>
+                            <input type="text" class="form-control" id="Driver_Name" name="Driver_Name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Car_Condition" class="form-label">Car Condition</label>
+                            <select class="form-control" id="Car_Condition" name="Car_Condition" required>
+                                <option value="">Select Car Condition</option>
+                                <option value="Bad">Bad</option>
+                                <option value="Good">Good</option>
+                                <option value="Very Good">Very Good</option>
+                                <option value="Excellent">Excellent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="Weather" class="form-label">Weather</label>
+                            <select class="form-control" id="Weather" name="Weather" required>
+                                <option value="">Select Weather</option>
+                                <option value="rainy">Rainy</option>
+                                <option value="sunny">Sunny</option>
+                                <option value="stormy">Stormy</option>
+                                <option value="windy">Windy</option>
+                                <option value="cloudy">Cloudy</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Traffic_Condition" class="form-label">Traffic Condition</label>
+                            <select class="form-control" id="Traffic_Condition" name="Traffic_Condition" required>
+                                <option value="">Select Traffic Condition</option>
+                                <option value="Congested Traffic">Congested Traffic</option>
+                                <option value="Flow Traffic">Flow Traffic</option>
+                                <option value="Dense Traffic">Dense Traffic</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="key" class="form-label">Key</label>
+                            <input type="text" class="form-control" id="key" name="key" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="pickup_datetime" class="form-label">Pickup Datetime</label>
+                            <input type="datetime-local" class="form-control" id="pickup_datetime" name="pickup_datetime" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="pickup_longitude" class="form-label">Pickup Longitude</label>
+                            <input type="number" step="any" class="form-control" id="pickup_longitude" name="pickup_longitude" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="pickup_latitude" class="form-label">Pickup Latitude</label>
+                            <input type="number" step="any" class="form-control" id="pickup_latitude" name="pickup_latitude" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dropoff_longitude" class="form-label">Dropoff Longitude</label>
+                            <input type="number" step="any" class="form-control" id="dropoff_longitude" name="dropoff_longitude" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dropoff_latitude" class="form-label">Dropoff Latitude</label>
+                            <input type="number" step="any" class="form-control" id="dropoff_latitude" name="dropoff_latitude" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="passenger_count" class="form-label">Passenger Count</label>
+                            <input type="number" min="1" class="form-control" id="passenger_count" name="passenger_count" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="hour" class="form-label">Hour</label>
+                            <input type="number" min="1" max="24" class="form-control" id="hour" name="hour" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="day" class="form-label">Day</label>
+                            <input type="number" min="1" max="31" class="form-control" id="day" name="day" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="month" class="form-label">Month</label>
+                            <input type="number" min="1" max="12" class="form-control" id="month" name="month" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="weekday" class="form-label">Weekday</label>
+                            <input type="number" min="1" max="7" class="form-control" id="weekday" name="weekday" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="year" class="form-label">Year</label>
+                            <input type="number" class="form-control" id="year" name="year" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="jfk_dist" class="form-label">JFK Distance</label>
+                            <input type="number" step="any" class="form-control" id="jfk_dist" name="jfk_dist" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ewr_dist" class="form-label">EWR Distance</label>
+                            <input type="number" step="any" class="form-control" id="ewr_dist" name="ewr_dist" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lga_dist" class="form-label">LGA Distance</label>
+                            <input type="number" step="any" class="form-control" id="lga_dist" name="lga_dist" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sol_dist" class="form-label">SOL Distance</label>
+                            <input type="number" step="any" class="form-control" id="sol_dist" name="sol_dist" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="nyc_dist" class="form-label">NYC Distance</label>
+                            <input type="number" step="any" class="form-control" id="nyc_dist" name="nyc_dist" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="distance" class="form-label">Distance</label>
+                            <input type="number" step="any" class="form-control" id="distance" name="distance" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="bearing" class="form-label">Bearing</label>
+                            <input type="number" step="any" class="form-control" id="bearing" name="bearing" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Predict</button>
+                </form>
+                {% if prediction %}
+                    <div class="alert alert-info mt-4">
+                        <h4>Prediction: ${{ prediction }}</h4>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <footer class="mt-5 text-center">
+            &copy; 2024 Taxi Fare Prediction
+        </footer>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([40.7128, -74.0060], 13); // Default to NYC coordinates
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var pickupMarker = L.marker([40.7128, -74.0060], {draggable: true}).addTo(map)
+            .bindPopup('Pickup Location').openPopup();
+        var dropoffMarker = L.marker([40.7128, -74.0060], {draggable: true}).addTo(map)
+            .bindPopup('Dropoff Location').openPopup();
+
+        pickupMarker.on('dragend', function(e) {
+            var lat = e.target.getLatLng().lat;
+            var lng = e.target.getLatLng().lng;
+            document.getElementById('pickup_latitude').value = lat;
+            document.getElementById('pickup_longitude').value = lng;
+        });
+
+        dropoffMarker.on('dragend', function(e) {
+            var lat = e.target.getLatLng().lat;
+            var lng = e.target.getLatLng().lng;
+            document.getElementById('dropoff_latitude').value = lat;
+            document.getElementById('dropoff_longitude').value = lng;
+        });
+    </script>
+</body>
+</html>
